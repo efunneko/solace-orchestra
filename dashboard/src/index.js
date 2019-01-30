@@ -45,17 +45,6 @@ class Dashboard {
       }
     );
 
-    // Temporary buttons...
-    this.buttons = [
-      {title: "Add Conductor", listener: e => {this.addConductor(e);}},
-      {title: "Add Musician",  listener: e => {this.addMusician(e);}},
-      {title: "Add Symphony",  listener: e => {this.addSymphony(e);}},
-      {title: "Clear",         listener: e => {this.clearButton(e);}}
-    ];
-
-    // Fill in all the HTML from the templates
-    jst("body").appendChild(jst.stamp("dashboard", templates.page, this));
-    
   }
 
   connected() {

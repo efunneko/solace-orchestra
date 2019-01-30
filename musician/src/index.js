@@ -224,7 +224,7 @@ class Musician {
       clearInterval(this.scoreUpdater);
     }
 
-    this.scoreUpdater = setInterval(function () {
+    this.scoreUpdater = setInterval(() => {
       this.sendScoreMessage();
     }, 2500);
 
@@ -351,7 +351,7 @@ class Musician {
       let channelProgram = 0;
 
       // Go over each received note
-      message.note_list.forEach(function (noteMessage) {
+      message.note_list.forEach(noteMessage => {
 
         // Add the slider 1.5 seconds ahead of time
         var currentTime       = this.messaging.getSyncedTime();
@@ -378,9 +378,10 @@ class Musician {
           lastNoteId     = noteMessage.note_id;
           channelProgram = noteMessage.program;
 
+          let self = this;
           (function (riders) {
-            this.sliderTimeouts.push(setTimeout(function () {
-              this.addSlider(noteMessage.note_id, noteMessage.track,
+            self.sliderTimeouts.push(setTimeout(() =>  {
+              self.addSlider(noteMessage.note_id, noteMessage.track,
                         noteMessage, riders);
             }, timeoutSeconds));
           })(lastRiders);
@@ -403,9 +404,8 @@ class Musician {
   }
 
   addDemoSlider(id, track, timeout) {
-    setTimeout(function () {
-      this.addSlider(id, track);
-    }, timeout);
+    setTimeout(() => this.addSlider(id, track),
+               timeout);
   }
 
   buildSlider(id, track, message) {
@@ -427,7 +427,7 @@ class Musician {
     slider.addTime = Date.now();
     return slider;
     
-}
+  }
 
   addSlider(id, track, message, riders) {
     let sliders = document.getElementById("sliders");
@@ -447,8 +447,8 @@ class Musician {
     }, this.sliderTimeSecs * 1000);
 
     // Remove the event
-    setTimeout(function () {
-      var index = this.allSliders.map(function (s) {
+    setTimeout(() =>  {
+      var index = this.allSliders.map((s) => {
         return s.id;
       }).indexOf(id);
       
