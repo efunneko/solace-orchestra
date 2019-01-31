@@ -13,24 +13,19 @@ There are four components that you need to run:
 
 ### Startup for symphony, dashboard and musician
 
-All three of these components are javascript single-page apps for the browswer. To get them to work, you need to go into each directory and run:
+The symphony and dashboard components are in on single-page app that is contained in the `combined` directory. The musician is in its own directory.
+
+All three of these components are javascript single-page apps for the browser. To get them to work, you need to go into each directory (combined and musician) and run:
 
 1. `npm install`
 2. `npm run watch` - note that this never exits, so you will need a separate terminal for each
 
-Then you need to start some sort of web-server to serve the files. The easiest way to do this is to navigate to the
-root directory of the project and run:
-
-  `python -m SimpleHTTPServer 8000`
-  
-This runs a very bare-bones server that can serve up the files. I find it a bit flakey, so you might have to
-restart it occasionally.
+This will run a webpack-dev-server that will serve up the SPA.
 
 To run a component, you should be able to go to: 
 
-  * Dashboard:  http://localhost:8080/dashboard/dist/index.html
-  * Symphony: http://localhost:8080/symphony/dist/index.html
-  * Musician: http://localhost:8080/orchestra-hero/dist/index.html
+  * Dashboard/Symphony:  http://localhost:8888/
+  * Musician:            http://localhost:8889/
 
 ### Startup for conductor
 
