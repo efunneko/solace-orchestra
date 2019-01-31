@@ -3,9 +3,6 @@ import {ChannelPane}      from './channelPane.js';
 import {DuckLetterEffect} from '../effects.js';
 import Messaging          from '../messaging.js';
 
-const sliderTimeMs = 1500;
-const colours      = ['#0074d9', '#d83439', '#38b439', '#e9cd54',
-                      '#811ed1', '#e66224', '#e041ab'];
     // How much we penalize notes that weren't hit
 const velocityDerateFactor = 8;
 
@@ -294,7 +291,6 @@ export class Symphony extends jst.Object {
           window.MIDI.programChange(safeNote.channel, (safeNote.program || 0));
           window.MIDI.setVolume(safeNote.channel, 127);
           window.MIDI.noteOn(safeNote.channel, safeNote.note, !self.activeChannels[safeNote.channel] || self.hitNotes.hasOwnProperty(note.note_id) ? safeNote.velocity : safeNote.velocity/velocityDerateFactor, 0);
-          //                    MIDI.noteOn(safeNote.channel, safeNote.note, hitNotes.hasOwnProperty(note.note_id) ? safeNote.velocity : safeNote.velocity/velocityDerateFactor, 0);
           window.MIDI.noteOff(safeNote.channel, safeNote.note, safeNote.duration/1000);
         }, delay));
       })(note);

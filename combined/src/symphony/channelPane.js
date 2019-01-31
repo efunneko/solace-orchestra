@@ -2,6 +2,8 @@ import {jst}             from 'jayesstee';
 import {defs}            from '../defs.js';
 
 const sliderTimeMs = 1500;
+const colours      = ['#0074d9', '#d83439', '#38b439', '#e9cd54',
+                      '#811ed1', '#e66224', '#e041ab'];
 
 export class ChannelPane extends jst.Object {
   constructor(symphony, channel) {
@@ -89,24 +91,24 @@ export class ChannelPane extends jst.Object {
     );
   }
 
-  addSlider(delay, track) {
+  addSlider(delay, track, duration) {
     let sliderDelay = delay - sliderTimeMs;
 
     this.timeouts.push(window.setTimeout(() => {
-      this.addSliderAfterDelay(track);
+      this.addSliderAfterDelay(track, duration);
     }, sliderDelay));
   }
 
-  addSliderAfterDelay(track) {
+  addSliderAfterDelay(track, duration) {
     let id = this.sliderIds++;
 
-    this.sliders.push(new Slider(track));
+    this.sliders.push(new Slider(track, duration));
 
     // Remove the slider after it hits the end
     this.timeouts.push(window.setTimeout(e => {
       this.sliders.shift();
       this.refresh();
-    }, sliderTimeMs));
+    }, sliderTimeMs*2));
     this.refresh();
   }
 
@@ -114,7 +116,7 @@ export class ChannelPane extends jst.Object {
     let delay       = note.play_time - this.symphony.messaging.getTime();
     let sliderDelay = delay - sliderTimeMs;
     let track       = note.track;
-    this.addSlider(delay, track);
+    this.addSlider(delay, track, note.duration);
   }
 
   remove() {
@@ -125,66 +127,82 @@ export class ChannelPane extends jst.Object {
 
 
 export class Slider extends jst.Object {
-  constructor(track) {
+  constructor(track, duration) {
     super();
-    this.track = track;
+    this.track    = track;
+    this.duration = duration > sliderTimeMs ? sliderTimeMs : duration;
   }
 
   cssLocal() {
     const stepSize = 29;
     let sliderTop  = 27;
+    let colourIdx  = 0;
     return {
       slider$c: {
         position:                "absolute",
-        right$px:                -20,
+        left$px:                 0,
         height$px:               26,
-        width$px:                26,
         borderRadius$px:         13,
-        backgroundColor:         "blue",
-        animationDuration:       `${sliderTimeMs}ms`,
+        animationDuration:       `${sliderTimeMs*2}ms`,
         animationName:           "slide",
         animationTimingFunction: "linear"
       },
 
       slider0$c: {
-        top$px: sliderTop
+        top$px:           sliderTop,
+        backgroundColor:  colours[colourIdx++]
       },
       slider1$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider2$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider3$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider4$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider5$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider6$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
       slider7$c: {
-        top$px: sliderTop+=stepSize
+        top$px: sliderTop+=stepSize,
+        backgroundColor:  colours[colourIdx++]
       },
 
       $keyframes: {
         $rule: "slide",
         from: {
-          right$px: -20
+          left$px:  260
         },
         to: {
-          right$px: 260
+          left$px:  -260
         }
+      }
+    };
+  }
+
+  cssInstance() {
+    return {
+      slider$c: {
+        width$px: this.duration/6
       }
     };
   }
   
   render() {
-    return jst.$div({cn: `-slider -slider${this.track}`});
+    return jst.$div({cn: `-slider -slider${this.track} --slider`});
   }
 
 }
