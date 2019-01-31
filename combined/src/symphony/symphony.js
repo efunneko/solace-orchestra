@@ -5,7 +5,7 @@ import Messaging          from '../messaging.js';
 
     // How much we penalize notes that weren't hit
 const velocityDerateFactor = 8;
-
+const maxTotalSliders      = 40;
 
 // Extracted from all current songs
 // TODO: need to learn this from all conductors at start time rather than
@@ -17,11 +17,11 @@ const instruments = [0, 4, 9, 22, 24, 25, 28, 29, 30, 33, 40, 41, 42,
 export class Symphony extends jst.Object {
   constructor(app, params) {
     super();
-    this.app    = app;
+    this.app            = app;
 
-    this.line_spacing = 20;
-    this.allSliders   = [];
-    this.timeouts     = [];
+    this.line_spacing   = 20;
+    this.allSliders     = [];
+    this.timeouts       = [];
 
     this.hitNotes       = {};
     this.playerNames    = {};
@@ -30,14 +30,16 @@ export class Symphony extends jst.Object {
     this.channels       = [];
     this.channelMap     = {};
 
-    this.id = this.uuid();
-    this.songPlaying = false;
+    this.id             = this.uuid();
+    this.songPlaying    = false;
 
-    // Map of channels that should be played full volume because there are no musicians
+    this.numSliders     = 0;
+
+    // Map of channels that should be played full volume
+    // because there are no musicians
     this.activeChannels = {};
 
     this.audioStarted = false;
-    
     
   }
 
@@ -83,15 +85,22 @@ export class Symphony extends jst.Object {
       ),
       jst.$div(
         {cn: "-body"},
-        jst.if(this.audioStarted,
-               jst.$div(
-                 jst.$div({cn: "-notice"},           this.status),
-                 jst.$div({cn: "-channelContainer"}, this.channels)
-               ),
-               jst.$div({cn: "-startAudio"},
-                        jst.$div({cn: "-startAudioButton", events: {click: e => this.startAudio()}}, "Load Instruments")
-                       )
-              )
+        jst.if(
+          this.audioStarted,
+          // true
+          jst.$div(
+            jst.$div({cn: "-notice"},           this.status),
+            jst.$div({cn: "-channelContainer"}, this.channels)
+          ),
+          // false
+          jst.$div(
+            {cn: "-startAudio"},
+            jst.$div(
+              {cn: "-startAudioButton",
+               events: {click: e => this.startAudio()}}, "Load Instruments"
+            )
+          )
+        )
       )
     );
   }
@@ -304,5 +313,16 @@ export class Symphony extends jst.Object {
     });
   }
 
+  checkAndAddSlider() {
+    if (this.numSliders <= maxTotalSliders) {
+      this.numSliders++;
+      return true;
+    }
+    return false;
+  }
+
+  removeSlider() {
+    this.numSliders--;
+  }
 
 }

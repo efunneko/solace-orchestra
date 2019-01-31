@@ -1,9 +1,9 @@
 import {jst}             from 'jayesstee';
 import {defs}            from '../defs.js';
 
-const sliderTimeMs = 1500;
-const colours      = ['#0074d9', '#d83439', '#38b439', '#e9cd54',
-                      '#811ed1', '#e66224', '#e041ab'];
+const sliderTimeMs    =      1500;
+const colours         = ['#0074d9', '#d83439', '#38b439', '#e9cd54',
+                         '#811ed1', '#e66224', '#e041ab'];
 
 export class ChannelPane extends jst.Object {
   constructor(symphony, channel) {
@@ -100,7 +100,11 @@ export class ChannelPane extends jst.Object {
   }
 
   addSliderAfterDelay(track, duration) {
+    if (!this.symphony.checkAndAddSlider()) {
+      return;
+    }
     let id = this.sliderIds++;
+    duration = duration > sliderTimeMs ? sliderTimeMs : duration;
 
     this.sliders.push(new Slider(track, duration));
 
@@ -108,7 +112,8 @@ export class ChannelPane extends jst.Object {
     this.timeouts.push(window.setTimeout(e => {
       this.sliders.shift();
       this.refresh();
-    }, sliderTimeMs*2));
+      this.symphony.removeSlider();
+    }, sliderTimeMs + duration + 50));
     this.refresh();
   }
 
@@ -130,7 +135,7 @@ export class Slider extends jst.Object {
   constructor(track, duration) {
     super();
     this.track    = track;
-    this.duration = duration > sliderTimeMs ? sliderTimeMs : duration;
+    this.duration = duration;
   }
 
   cssLocal() {
@@ -140,7 +145,7 @@ export class Slider extends jst.Object {
     return {
       slider$c: {
         position:                "absolute",
-        left$px:                 0,
+        left$px:                 -260,
         height$px:               26,
         borderRadius$px:         13,
         animationDuration:       `${sliderTimeMs*2}ms`,
