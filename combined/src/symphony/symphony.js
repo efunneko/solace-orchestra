@@ -39,26 +39,8 @@ export class Symphony extends jst.Object {
     // Map of channels that should be played full volume because there are no musicians
     this.activeChannels = {};
 
-    this.status = "Loading instruments...";
-
-    this.loadInstruments()
-      .then(status => {
-        this.messaging = new Messaging({
-          callbacks: {
-            connected: (...args) => this.connected(...args),
-            start_song: (...args) => this.rxStartSong(...args),
-            stop_song: (...args) => this.rxStopSong(...args),
-            complete_song: (...args) => this.rxCompleteSong(...args),
-            score_update: (...args) => this.rxScoreUpdate(...args),
-            note: (...args) => this.rxNote(...args),
-            play_note: (...args) => this.rxPlayNote(...args),
-            note_list: (...args) => this.rxNoteList(...args),
-            reregister: (...args) => this.rxRegister(...args),
-            register_response: (...args) => this.rxRegisterResponse(...args),
-            player_start: (...args) => this.rxStartPlayer(...args),
-          }
-        });
-      });
+    this.audioStarted = false;
+    
     
   }
 
@@ -79,6 +61,19 @@ export class Symphony extends jst.Object {
         display: "flex",
         flexWrap: "wrap",
         margin$px: [10, 0]
+      },
+      startAudio$c: {
+        textAlign: "center",
+        fontSize$px: 30
+      },
+      startAudioButton$c: {
+        display: "inline-block",
+        padding$px: 15,
+        boxShadow$px: [0,0,5,jst.rgba(0,0,0,0.4)]
+      },
+      startAudioButton$c$hover: {
+        boxShadow$px: [0,0,10,jst.rgba(0,0,0,0.4)],
+        backgroundColor: "#ffc"
       }
     };
   }
@@ -91,10 +86,44 @@ export class Symphony extends jst.Object {
       ),
       jst.$div(
         {cn: "-body"},
-        jst.$div({cn: "-notice"},           this.status),
-        jst.$div({cn: "-channelContainer"}, this.channels)
+        jst.if(this.audioStarted,
+               jst.$div(
+                 jst.$div({cn: "-notice"},           this.status),
+                 jst.$div({cn: "-channelContainer"}, this.channels)
+               ),
+               jst.$div({cn: "-startAudio"},
+                        jst.$div({cn: "-startAudioButton", events: {click: e => this.startAudio()}}, "Load Instruments")
+                       )
+              )
       )
     );
+  }
+
+  startAudio() {
+
+    this.audioStarted = true;
+    this.status = "Loading instruments...";
+    this.refresh();
+    
+    this.loadInstruments()
+      .then(status => {
+        this.messaging = new Messaging({
+          callbacks: {
+            connected: (...args)         => this.connected(...args),
+            start_song: (...args)        => this.rxStartSong(...args),
+            stop_song: (...args)         => this.rxStopSong(...args),
+            complete_song: (...args)     => this.rxCompleteSong(...args),
+            score_update: (...args)      => this.rxScoreUpdate(...args),
+            note: (...args)              => this.rxNote(...args),
+            play_note: (...args)         => this.rxPlayNote(...args),
+            note_list: (...args)         => this.rxNoteList(...args),
+            reregister: (...args)        => this.rxRegister(...args),
+            register_response: (...args) => this.rxRegisterResponse(...args),
+            player_start: (...args)      => this.rxStartPlayer(...args),
+          }
+        });
+      });
+
   }
 
 
