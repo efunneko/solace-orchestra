@@ -110,7 +110,7 @@ export class Dashboard extends jst.Object {
       // Header
       jst.$div(
         {cn: '-header'},
-        "Orchestra Hero Dashboard"
+        "Solace Symphony Dashboard"
       ),
 
       // Body
