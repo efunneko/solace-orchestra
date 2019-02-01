@@ -53,7 +53,6 @@ export class Musicians extends RemoteComponentList {
 
   rxScoreUpdate(message) {
     let musician = this.itemMap[message.client_id];
-    console.log("setting score", this, message);
     if (musician) {
       musician.setScore(message);
       this.sort();
@@ -84,12 +83,20 @@ class Musician extends RemoteComponent {
   }
 
   toggle() {
-    this.disabled = this.disabled ? false : true;
-    this.refresh();
+    this.disable(this.disabled ? false : true);
   }
 
   disable(val) {
     this.disabled = val;
+    this.state    = val ? "Inactive" : "Idle";
+
+    if (!this.disabled) {
+      this.messaging.sendMessage(`orchestra/p2p/${this.fields.client_id}`, {msg_type: 'enable'});
+    }
+    else {
+      this.messaging.sendMessage(`orchestra/p2p/${this.fields.client_id}`, {msg_type: 'disable'});
+    }
+
     this.refresh();
   }
 

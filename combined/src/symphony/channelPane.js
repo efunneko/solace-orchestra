@@ -3,7 +3,7 @@ import {defs}            from '../defs.js';
 
 const sliderTimeMs    =      1500;
 const colours         = ['#0074d9', '#d83439', '#38b439', '#e9cd54',
-                         '#811ed1', '#e66224', '#e041ab'];
+                         '#811ed1', '#e66224', '#e041ab', 'blue', 'red'];
 
 export class ChannelPane extends jst.Object {
   constructor(symphony, channel) {
@@ -93,14 +93,13 @@ export class ChannelPane extends jst.Object {
 
   addSlider(delay, track, duration) {
     let sliderDelay = delay - sliderTimeMs;
-
     this.timeouts.push(window.setTimeout(() => {
       this.addSliderAfterDelay(track, duration);
     }, sliderDelay));
   }
 
   addSliderAfterDelay(track, duration) {
-    if (!this.symphony.checkAndAddSlider()) {
+    if (!this.symphony.checkAndAddSlider() || duration < 10) {
       return;
     }
     let id = this.sliderIds++;
@@ -113,6 +112,7 @@ export class ChannelPane extends jst.Object {
       this.sliders.shift();
       this.refresh();
       this.symphony.removeSlider();
+
     }, sliderTimeMs + duration + 50));
     this.refresh();
   }
@@ -148,6 +148,7 @@ export class Slider extends jst.Object {
         left$px:                 -260,
         height$px:               26,
         borderRadius$px:         13,
+        border$px: [1, "solid", "black"],
         animationDuration:       `${sliderTimeMs*2}ms`,
         animationName:           "slide",
         animationTimingFunction: "linear"

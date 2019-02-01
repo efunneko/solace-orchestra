@@ -11,6 +11,7 @@ export class Songs extends RemoteComponentList {
     this.component   = "song";
     this.type        = Song;
     this.currentSong = undefined;
+    this.stateColumn = "all";
 
     this.fields = [
       {title: "",           name: "action"},
@@ -55,7 +56,9 @@ export class Songs extends RemoteComponentList {
   }
 
   rxCompleteSong(topic, message) {
-    this.currentSong.stop();
+    if (this.currentSong) {
+      this.currentSong.stop();
+    }
   }
 
   setCurrentSong(song) {

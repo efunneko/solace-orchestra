@@ -48,9 +48,10 @@ export class Pinger {
 export class RemoteComponentList extends jst.Object {
   constructor(dashboard) {
     super();
-    this.dashboard = dashboard;
-    this.items     = [];
-    this.itemMap   = {};
+    this.dashboard   = dashboard;
+    this.items       = [];
+    this.itemMap     = {};
+    this.stateColumn = "name";
   }
 
   cssLocal() {
@@ -64,6 +65,9 @@ export class RemoteComponentList extends jst.Object {
       },
       stateIdle$c: {
         color:      "#000"
+      },
+      stateWaiting$c: {
+        color:      "orange"
       }
     };
   }
@@ -79,7 +83,8 @@ export class RemoteComponentList extends jst.Object {
             this.items.map(
               m => jst.$tr(
                 this.fields.map(field => jst.$td(
-                  {cn: `-state${m.state ? m.state : ""}`},
+                  jst.if(this.stateColumn === "all" || field.name === this.stateColumn,
+                         {cn: `-state${m.state ? m.state : ""}`}),
                   field.format ?
                     field.format(m.fields[field.name]) :
                     m.fields[field.name]))
@@ -97,6 +102,15 @@ export class RemoteComponentList extends jst.Object {
     for (let item of this.items) {
       item.state = state;
     }
+    this.refresh();
+  }
+
+  setStateById(id, state) {
+    let item = this.itemMap[id];
+    if (item) {
+      item.setState(state);
+    }
+    this.refresh();
   }
 
   addItem(rawItem) {

@@ -176,6 +176,7 @@ export class Dashboard extends jst.Object {
   
   rxStopSong(topic, message) {
     console.log("Received stop_song message: ", message);
+    this.setAllComponentState("idle");
   }
   
   rxCompleteSong(topic, message) {
@@ -211,24 +212,24 @@ export class Dashboard extends jst.Object {
       start_time:     this.messaging.getTime() + this.startTimeOffset,
     };
 
+    this.pendingSongStartRequests = {};
+
     // Send to the specific conductor
     let conductorId   = song.fields.conductor_id;
+    this.components.conductor.setStateById(conductorId, "Waiting");
  
     msg.time_server_topic = `orchestra/p2p/${conductorId}`;
 
-    this.messaging.sendMessage(`orchestra/p2p/${conductorId}`,
-                               msg,
-                               (txMessage, rxMessage) => {
-                                 this.handleStartSongResponse(conductorId, txMessage, rxMessage);
-                               }, 2000, 4);
     
     let symphonies = this.getComponent("symphony");
+    symphonies.setAllState("Waiting");
     for (let component of symphonies.items) {
-      component.state = "Waiting";
+      this.pendingSongStartRequests[component.fields.client_id] = true;
       this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
                                  msg,
                                  (txMessage, rxMessage) => {
-                                   this.handleStartSongResponse(component, component, rxMessage);
+                                   component.setState("Active");
+                                   this.handleStartSongResponse(component, msg, conductorId);
                                  }, 2000, 4);
     }
 
@@ -236,12 +237,13 @@ export class Dashboard extends jst.Object {
     let count = 0;
     
     let musicians = this.getComponent("musician");
+    musicians.setAllState("Waiting");
     for (let component of musicians.items) {
       if (component.disabled) {
         continue;
       }
       
-      component.state = "Waiting";
+      this.pendingSongStartRequests[component.fields.client_id] = true;
       
       let txMsg            = Object.assign({}, msg);
       txMsg.channel_id     = song.fields.channelList[index++].channel_id;
@@ -250,17 +252,48 @@ export class Dashboard extends jst.Object {
       this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
                                  txMsg,
                                  (txMessage, rxMessage) => {
-                                   this.handleStartSongResponse(component, component, rxMessage);
+                                   component.setState("Active");
+                                   this.handleStartSongResponse(component, msg, conductorId);
                                  }, 2000, 4);
       if (index >= song.fields.channelList.length) {
         index = 0;
       }
     }
 
+    this.conductorTimeout = window.setTimeout(() => {
+      this.sendConductorStartSong(msg, conductorId);
+    }, 8000);
+
   }
 
-  handleStartSongResponse() {
-    console.warn("handle this");
+  handleStartSongResponse(component, msg, conductorId) {
+    if (this.pendingSongStartRequests[component.fields.client_id]) {
+      delete(this.pendingSongStartRequests[component.fields.client_id]);
+
+      if (Object.keys(this.pendingSongStartRequests).length == 0) {
+        window.clearTimeout(this.conductorTimeout);
+        this.sendConductorStartSong(msg, conductorId);
+      }
+      
+    }
+    
+  }
+
+  sendConductorStartSong(msg, id) {
+    this.messaging.sendMessage(`orchestra/p2p/${id}`,
+                               msg,
+                               (txMessage, rxMessage) => {
+                                 this.components.conductor.setStateById(id, "Active");
+                               }, 2000, 4);
+  }
+
+  setAllComponentState(state) {
+    for (let component of Object.keys(this.components)) {
+      if (this.components[component].setAllState) {
+        this.components[component].setAllState("Idle");
+      }
+    }
+    
   }
   
 }

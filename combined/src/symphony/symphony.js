@@ -5,7 +5,7 @@ import Messaging          from '../messaging.js';
 
     // How much we penalize notes that weren't hit
 const velocityDerateFactor = 8;
-const maxTotalSliders      = 40;
+const maxTotalSliders      = 50;
 
 // Extracted from all current songs
 // TODO: need to learn this from all conductors at start time rather than
@@ -225,14 +225,12 @@ export class Symphony extends jst.Object {
     let channelList = [];
     this.activeChannels = {};
     this.songPlaying = true;
+    this.numSliders  = 0;
 
-    console.log("Starting song:", message);
     this.setStatus(`Playing song: ${message.song_name}`);
     for (let key of Object.keys(message.song_channels)) {
       this.addChannel(message.song_channels[key]);
     }
-
-    //this.buildTracks(channelList);
 
     this.messaging.sendResponse(message, {});
     this.refresh();
@@ -293,6 +291,9 @@ export class Symphony extends jst.Object {
         let channel = this.channelMap[note.channel];
         if (channel) {
           channel.addNote(safeNote);
+        }
+        else {
+          console.log("Skipping due to no channel", note.channel, channel);
         }
         let delay = safeNote.play_time - self.messaging.getTime();
 
