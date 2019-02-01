@@ -123,6 +123,8 @@ export class Dashboard extends jst.Object {
 
 
 
+  
+
   //
   // Messaging Callbacks
   //
@@ -177,6 +179,7 @@ export class Dashboard extends jst.Object {
   }
   
   rxCompleteSong(topic, message) {
+    console.log("Received complete_song message: ", message);
     this.components.song.rxCompleteSong(message);
     this.setAllComponentState("idle");
   }
@@ -196,6 +199,69 @@ export class Dashboard extends jst.Object {
     this.components.status.setUpdate(text);
   }
 
+  sendStartSongMessage(song) {
+
+    let msg = {
+      msg_type:       "start_song",
+      song_id:        song.fields.song_id,
+      song_name:      song.fields.song_name,
+      song_length:    song.fields.song_name,
+      song_channels:  song.fields.song_channels,
+      theatre_id:     'default',
+      start_time:     this.messaging.getTime() + this.startTimeOffset,
+    };
+
+    // Send to the specific conductor
+    let conductorId   = song.fields.conductor_id;
+ 
+    msg.time_server_topic = `orchestra/p2p/${conductorId}`;
+
+    this.messaging.sendMessage(`orchestra/p2p/${conductorId}`,
+                               msg,
+                               (txMessage, rxMessage) => {
+                                 this.handleStartSongResponse(conductorId, txMessage, rxMessage);
+                               }, 2000, 4);
+    
+    let symphonies = this.getComponent("symphony");
+    for (let component of symphonies.items) {
+      component.state = "Waiting";
+      this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
+                                 msg,
+                                 (txMessage, rxMessage) => {
+                                   this.handleStartSongResponse(component, component, rxMessage);
+                                 }, 2000, 4);
+    }
+
+    let index = 0;
+    let count = 0;
+    
+    let musicians = this.getComponent("musician");
+    for (let component of musicians.items) {
+      if (component.disabled) {
+        continue;
+      }
+      
+      component.state = "Waiting";
+      
+      let txMsg            = Object.assign({}, msg);
+      txMsg.channel_id     = song.fields.channelList[index++].channel_id;
+      component.channel_id = txMsg.channel_id;
+      count++;
+      this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
+                                 txMsg,
+                                 (txMessage, rxMessage) => {
+                                   this.handleStartSongResponse(component, component, rxMessage);
+                                 }, 2000, 4);
+      if (index >= song.fields.channelList.length) {
+        index = 0;
+      }
+    }
+
+  }
+
+  handleStartSongResponse() {
+    console.warn("handle this");
+  }
   
 }
 

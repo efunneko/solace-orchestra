@@ -23,29 +23,31 @@ export class Songs extends RemoteComponentList {
   }
 
   cssLocal() {
-    return {
-      actionCell$c: {
-        minWidth$em: 1
-      },
-      
-      actionButton$c: {
-        cursor:     "pointer",
-      },
+    return [
+      super.cssLocal(),
+      {
+        actionCell$c: {
+          minWidth$em: 1
+        },
+        
+        actionButton$c: {
+          cursor:     "pointer",
+        },
 
-      actionButton$c$hover: {
-        color:      "blue",
-      },
+        actionButton$c$hover: {
+          color:      "blue",
+        },
 
-      actionInactive$c: {
-        cursor:     "default",
-        opacity:    0.5,
-      },
+        actionInactive$c: {
+          cursor:     "default",
+          opacity:    0.5,
+        },
 
-      actionInactive$c$hover: {
-        color:      "black",
-      },
-
-    };
+        actionInactive$c$hover: {
+          color:      "black",
+        },
+      }
+    ];
   }
   
   removeSongsForConductor(id) {
@@ -60,14 +62,19 @@ export class Songs extends RemoteComponentList {
     if (this.currentSong) {
       this.currentSong.stop();
     }
+    this.setAllState("Inactive");
+    song.setState("Active");
     this.currentSong = song;
+    this.refresh();
   }
 
   stopCurrentSong() {
     if (this.currentSong) {
       this.currentSong.stop();
     }
+    this.setAllState("Idle");
     delete this.currentSong;
+    this.refresh();
   }
 
   sortFunc(a, b) {
@@ -80,9 +87,9 @@ export class Songs extends RemoteComponentList {
 class Song extends LocalComponent {
   constructor(messaging, parent, me) {
     super(messaging, parent, me);
-
     this.amPlaying     = false;
     this.fields.action = () => this.renderActionCell();
+    this.state         = "Idle";
   }
 
   renderActionCell() {
@@ -138,65 +145,8 @@ class Song extends LocalComponent {
   }
 
   sendStartSongMessage() {
-    // Send the message out to all registered components
-    let msg = {
-      msg_type:       "start_song",
-      song_id:        this.fields.song_id,
-      song_name:      this.fields.song_name,
-      song_length:    this.fields.song_name,
-      song_channels:  this.fields.song_channels,
-      theatre_id:     'default',
-      start_time:     this.messaging.getTime() + this.parent.dashboard.startTimeOffset,
-    };
-
-    // Send to the specific conductor
-    let conductorId   = this.fields.conductor_id;
-    //conductor.state = "waiting";
-    console.log("sending conductor message", conductorId);
-    msg.time_server_topic = `orchestra/p2p/${conductorId}`;
-
-    this.messaging.sendMessage(`orchestra/p2p/${conductorId}`,
-                               msg,
-                               (txMessage, rxMessage) => {
-                                 this.handleStartSongResponse(conductorId, txMessage, rxMessage);
-                               }, 2000, 4);
-    
-    // TODO - refactor
-    let symphonies = this.parent.dashboard.getComponent("symphony");
-    for (let component of symphonies.items) {
-      component.state = "waiting";
-      this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
-                                 msg,
-                                 (txMessage, rxMessage) => {
-                                   this.handleStartSongResponse(component, component, rxMessage);
-                                 }, 2000, 4);
-    }
-
-    let index = 0;
-    let count = 0;
-    // TODO - refactor
-    let musicians = this.parent.dashboard.getComponent("musician");
-    for (let component of musicians.items) {
-      if (component.disabled) {
-        continue;
-      }
-      component.state = "waiting";
-      let txMsg = Object.assign({}, msg);
-      txMsg.channel_id = this.fields.channelList[index++].channel_id;
-      component.channel_id = txMsg.channel_id;
-      count++;
-      this.messaging.sendMessage(`orchestra/p2p/${component.fields.client_id}`,
-                                 txMsg,
-                                 (txMessage, rxMessage) => {
-                                   this.handleStartSongResponse(component, component, rxMessage);
-                                 }, 2000, 4);
-      if (index >= this.fields.channelList.length) {
-        index = 0;
-      }
-    }
-
+    this.parent.dashboard.sendStartSongMessage(this);
     this.refresh();
-    
   }
   
 

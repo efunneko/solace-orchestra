@@ -53,6 +53,21 @@ export class RemoteComponentList extends jst.Object {
     this.itemMap   = {};
   }
 
+  cssLocal() {
+    return {
+      stateActive$c: {
+        fontWeight: "bold",
+        color:      "green"
+      },
+      stateInactive$c: {
+        color:      "#888"
+      },
+      stateIdle$c: {
+        color:      "#000"
+      }
+    };
+  }
+
   render() {
     return jst.$table(
           jst.$thead(
@@ -63,9 +78,11 @@ export class RemoteComponentList extends jst.Object {
           jst.$tbody(
             this.items.map(
               m => jst.$tr(
-                this.fields.map(field => jst.$td(field.format ?
-                                                 field.format(m.fields[field.name]) :
-                                                 m.fields[field.name]))
+                this.fields.map(field => jst.$td(
+                  {cn: `-state${m.state ? m.state : ""}`},
+                  field.format ?
+                    field.format(m.fields[field.name]) :
+                    m.fields[field.name]))
               )
             )
           )
@@ -74,6 +91,12 @@ export class RemoteComponentList extends jst.Object {
 
   setMessaging(messaging) {
     this.messaging = messaging;
+  }
+
+  setAllState(state) {
+    for (let item of this.items) {
+      item.state = state;
+    }
   }
 
   addItem(rawItem) {
@@ -135,6 +158,10 @@ export class RemoteComponent {
     this.parent.removeItem(this);
   }
 
+  setState(state) {
+    this.state = state;
+  }
+
 }
 
 export class LocalComponent {
@@ -150,6 +177,10 @@ export class LocalComponent {
 
   remove() {
     this.parent.removeItem(this);
+  }
+
+  setState(state) {
+    this.state = state;
   }
 
 }
