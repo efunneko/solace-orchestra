@@ -54,11 +54,7 @@ export class RemoteComponentList extends jst.Object {
   }
 
   render() {
-    return jst.$div(
-      {cn: "-pane"},
-      jst.$div(
-        {cn: '-paneBody'},
-        jst.$table(
+    return jst.$table(
           jst.$thead(
             jst.$tr(
               this.fields.map(field => jst.$th({cn: "-th"}, field.title))
@@ -73,9 +69,7 @@ export class RemoteComponentList extends jst.Object {
               )
             )
           )
-        )
-      )
-    );
+        );
   }
 
   setMessaging(messaging) {

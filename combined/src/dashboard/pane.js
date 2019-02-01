@@ -53,7 +53,7 @@ export class Pane extends jst.Object {
 
       rowStateDisabled$c: {
         backgroundColor: "#bbb",
-      }
+      },
       
     };
   }
@@ -75,6 +75,10 @@ export class Pane extends jst.Object {
       },
 
       paneHeader$c: {
+        position: "absolute",
+        top$px:   0,
+        left$px:  0,
+        right$px: 0,
         backgroundColor: defs.global.color.primary,
         color:           "white",
         padding$px:      5,
@@ -82,8 +86,8 @@ export class Pane extends jst.Object {
       },
 
       paneBody$c: {
-        //position:   "absolute",
-        top$pt:     25,
+        position:   "absolute",
+        top$px:     30,
         bottom$px:  0,
         left$px:    0,
         right$px:   0,
@@ -110,7 +114,9 @@ export class Pane extends jst.Object {
       jst.$div({cn: `-paneHeader`},
                this.title
               ),
-      this.body
+      jst.$div({cn: '-paneBody'},
+               this.body
+              )
     );
   }
 
